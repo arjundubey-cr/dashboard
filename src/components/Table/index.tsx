@@ -20,13 +20,13 @@ export const Table = styled.table`
 	table-layout: auto
 `;
 
-export const THead = styled.thead`
-	position: sticky;
-	z-index: 100;
-`;
+export const THead = styled.thead``;
 
 export const THeadTR = styled.tr`
 	background: #f5f5f5;
+	position: sticky;
+	top: 58px;
+	z-index: 2;
 	
 `;
 
@@ -66,6 +66,8 @@ export const TD = styled.td`
         left: 0;
         z-index: 1;
 		background: white;
+		vertical-align: top;
+		align: left;
     }
 	&:nth-child(2){
         position: sticky;
