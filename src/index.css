@@ -1,9 +1,59 @@
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: "Poppins", Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+}
+
+.container {
+  width: 100%;
+  padding: 15px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* Responsive adjustments for different screen sizes */
+
+/* Small devices (phones, 576px and down) */
+@media (max-width: 576px) {
+  .container {
+    padding: 10px;
+  }
+}
+
+/* Medium devices (tablets, 577px to 768px) */
+@media (min-width: 577px) and (max-width: 768px) {
+  .container {
+    max-width: 540px;
+    padding: 15px;
+  }
+}
+
+/* Large devices (desktops, 769px to 992px) */
+@media (min-width: 769px) and (max-width: 992px) {
+  .container {
+    max-width: 720px;
+    padding: 10px;
+  }
+}
+
+/* Extra large devices (large desktops, 993px to 1200px) */
+@media (min-width: 993px) and (max-width: 1200px) {
+  .container {
+    max-width: 960px;
+    padding: 15px;
+  }
+}
+
+/* Extra extra large devices (larger desktops, 1201px and up) */
+@media (min-width: 1201px) {
+  .container {
+    max-width: 1140px;
+    padding: 20px;
+  }
 }

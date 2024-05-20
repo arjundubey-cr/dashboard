@@ -1,0 +1,24 @@
+.userInfo {
+	display: flex;
+	align-items: center;
+	max-width: 200px;
+}
+
+.userImage {
+	width: 30px;
+	height: 30px;
+	border-radius: 50%;
+	margin-right: 10px;
+}
+
+.userName {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	width: 150px;
+	font-weight: 600;
+}
+
+.userRole {
+	color: #868f9e;
+}

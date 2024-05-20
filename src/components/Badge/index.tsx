@@ -11,14 +11,15 @@ interface BadgeProps {
 const Badge = styled.span<BadgeProps>`
   border-radius: 9999px;
   display: inline-block;
-  font-weight: normal;
+  font-weight: 600;
   letter-spacing: 0.0375em;
   line-height: 1.125;
   text-transform: uppercase;
   padding: ${(props) => `${props.py}px ${props.px}px`};
-  background-color: gray;
+  background-color: #f0f4f6;
   font-size: 0.8rem;
-  color: white;
+  color: #878F9B;
+  visibility: ${(props) => `${props.hidden? 'hidden': 'visible'}`};
 `
 
 Badge.displayName = 'Badge'
