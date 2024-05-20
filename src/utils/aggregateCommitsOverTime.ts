@@ -1,7 +1,7 @@
 import { Row } from "../types/AuthorWorkLog";
 
 export function aggregateCommitsOverTime(dataArray: Row[]) {
-    const commitsPerDay: {label: string, value: number}[] = [];
+    const commitsPerDay: {label: string, Commits: number}[] = [];
   
     dataArray.forEach(data => {
       data.dayWiseActivity.forEach(dayActivity => {
@@ -10,9 +10,9 @@ export function aggregateCommitsOverTime(dataArray: Row[]) {
   
         const existingEntry = commitsPerDay.find(entry => entry.label === date);
         if (existingEntry) {
-          existingEntry.value += parseInt(commits, 10);
+          existingEntry["Commits"] += parseInt(commits, 10);
         } else {
-          commitsPerDay.push({ label: date, value: parseInt(commits, 10) });
+          commitsPerDay.push({ label: date, "Commits": parseInt(commits, 10) });
         }
       });
     });  

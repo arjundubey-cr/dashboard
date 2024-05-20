@@ -46,3 +46,16 @@ export interface Data {
 export interface RootObject {
 	data: Data;
 }
+export interface Summary {
+	name: string;
+	burnout: string;
+	insights: string;
+	incidentAlert: number;
+	incidentResolved: number;
+	commits: number;
+	"PR Open": number;
+	"PR Merged": number;
+	"PR Comments": number;
+	"PR Reviewed": number;
+	dayWiseActivity: DayWiseActivity[];
+  }

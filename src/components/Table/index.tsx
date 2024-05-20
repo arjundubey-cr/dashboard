@@ -24,10 +24,6 @@ export const THead = styled.thead``;
 
 export const THeadTR = styled.tr`
 	background: #f5f5f5;
-	position: sticky;
-	top: 58px;
-	z-index: 2;
-	
 `;
 
 export const TH = styled.th`

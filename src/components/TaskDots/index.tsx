@@ -1,4 +1,8 @@
-const TaskDots = ({ value, fillColor }: any) => {
+interface TProps {
+	value: number;
+	fillColor: string;
+}
+const TaskDots = ({ value, fillColor }: TProps) => {
 	return (
 		<div style={{ display: "flex" }}>
 			{value === 0 ? (

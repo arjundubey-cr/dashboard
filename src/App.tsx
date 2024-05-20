@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { Row } from "./types/AuthorWorkLog";
+import axios, { AxiosResponse } from "axios";
+import { Data, DayWiseActivity, DayWiseActivityItem, Row, Summary } from "./types/AuthorWorkLog";
 import Badge from "./components/Badge";
 import HalfCircleSpinner from "./components/Loader";
 import TaskDots from "./components/TaskDots";
@@ -8,58 +8,37 @@ import UserInfo from "./components/UserInfo";
 import { Table, THead, THeadTR, TH, TBody, TBodyTR, TD } from "./components/Table";
 import "./App.css";
 import { formatDate } from "./utils/formateDate";
-import { Bar, BarChart, Line, LineChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
-import GitPullRequest from "./assets/git-pull-request.svg";
-import GitMerge from "./assets/git-merge.svg";
-import CommentDiscussion from "./assets/comment-discussion.svg";
-import CodeReview from "./assets/code-review.svg";
-import styled from "styled-components";
-import { aggregateCommitsOverTime } from "./utils/aggregateCommitsOverTime";
+import { MultiSelectDropdown } from "./components/MultiSelectDropdown";
+import PRLogsChart from "./components/Charts/PRLogsChart";
+import CommitLogsChart from "./components/Charts/CommitLogsChart";
 const URL = "https://mocki.io/v1/4770bb69-ee83-4271-a581-d8f5f15761ec";
-const ASSETS = {
-	"PR Open": GitPullRequest,
-	"PR Merged": GitMerge,
-	"PR Comments": CommentDiscussion,
-	"PR Reviewed": CodeReview,
-};
-const StyledLogo = styled.img`
-	display: inline-block;
-	padding: 10px;
-	height: 15px;
-	width: 15px;
-	border-radius: 10px;
-	margin-right: 5px;
-	border: 1px solid ${(props) => props.color || "#ffebeb"};
-	background-color: ${(props) => props.color || "#ffebeb"};
-`;
 
 const App: React.FC = () => {
 	const [isLoading, setIsLoading] = useState<boolean>(true);
 	const [rows, setRows] = useState<Row[]>([]);
 	const [activityMeta, setActivityMeta] = useState<{ [key: string]: string }>({});
-	const [summaryData, setSummaryData] = useState<any[]>([]);
+	const [summaryData, setSummaryData] = useState<Summary[]>([]);
+	const [selectedFilters, setSelectedFilters] = useState<{ [key: string]: string[] }>({});
 
 	useEffect(() => {
 		axios
 			.get(URL)
-			.then((response) => {
+			.then((response: AxiosResponse<{data: Data}>) => {
 				const data = response.data?.data;
 				const activityMeta = data.AuthorWorklog.activityMeta.reduce(
-					(acc: { [key: string]: string }, item: any) => {
+					(acc: { [key: string]: string }, item) => {
 						acc[item.label] = item.fillColor;
 						return acc;
 					},
 					{},
 				);
-				console.log(aggregateCommitsOverTime(data.AuthorWorklog.rows));
-				const summaryData = data.AuthorWorklog.rows.map((row: any) => {
-					const totalActivity = row.totalActivity.reduce((acc: any, item: any) => {
+				const summaryData = data.AuthorWorklog.rows.map((row) => {
+					const totalActivity = row.totalActivity.reduce((acc:{[key:string]:string}, item) => {
 						acc[item.name] = item.value;
 						return acc;
 					}, {});
 					return {
 						name: row.name,
-						daysActive: row.activeDays.days,
 						burnout: row.activeDays.isBurnOut ? "Yes" : "No",
 						insights: row.activeDays.insight.join(", "),
 						incidentAlert: totalActivity["Incident Alert"],
@@ -74,62 +53,55 @@ const App: React.FC = () => {
 				});
 				setActivityMeta(activityMeta);
 				setRows(data.AuthorWorklog.rows);
+				//@ts-ignore
 				setSummaryData(summaryData);
 			})
 			.catch((error) => console.log(error))
 			.finally(() => setIsLoading(false));
 	}, []);
 
-	const generateSummaryData = (totalActivity: any) => {
-		return totalActivity.map((activity: any) => (
-			<div
-				key={activity.name}
-				className="summary-item"
-				style={{ borderRight: `2px solid ${activityMeta[activity.name]}` }}>
-				<span className="summary-label">{activity.name}</span>
-				<Badge>{activity.value}</Badge>
-			</div>
-		));
-	};
-
-	const generateBadgeDots = (items: any) => {
-		return items.map((activity: any) => (
-			<div key={activity.name} className="badge-dots">
-				<TaskDots value={activity.count} fillColor={activity.fillColor} />
-				<Badge hidden>{activity.count}</Badge>
-			</div>
-		));
-	};
-	const CustomTooltip = ({ active, payload, label }: any) => {
-		if (active && payload && payload.length) {
-			return (
-				<div className="custom-tooltip card">
-					<UserInfo name={label} />
-					{payload.map((item: any) => (
-						<div
-							key={item.name}
-							style={{
-								display: "flex",
-								alignItems: "center",
-								justifyContent: "space-between",
-							}}>
-							<div
-								style={{ display: "flex", alignItems: "center", marginTop: "5px" }}>
-								<StyledLogo
-									// @ts-ignore
-									src={ASSETS[item.name]}
-									color={activityMeta[item.name]}
-								/>
-								<span>{item.name}</span>
-							</div>
-							<div>{item.value}</div>
-						</div>
-					))}
+	const generateSummaryData = (
+		totalActivity: Array<{ name: string; value: string }>,
+		filters: string[],
+	) => {
+		return totalActivity
+			.filter((activity) => filters.length === 0 || filters.includes(activity.name))
+			.map((activity) => (
+				<div
+					key={activity.name}
+					className="summary-item"
+					style={{ borderRight: `2px solid ${activityMeta[activity.name]}` }}>
+					<span className="summary-label">{activity.name}</span>
+					<Badge>{activity.value}</Badge>
 				</div>
-			);
-		}
+			));
+	};
 
-		return null;
+	const generateBadgeDots = (items: DayWiseActivityItem[], filters: string[]) => {
+		return items
+			.filter((activity) => filters.length === 0 || filters.includes(activity.label))
+			.map((activity) => (
+				<div key={activity.label} className="badge-dots">
+					<TaskDots value={Number(activity.count)??0} fillColor={activity.fillColor} />
+					<Badge hidden>{activity.count}</Badge>
+				</div>
+			));
+	};
+
+	const toggleOption = (id: string, filterType: string) => {
+		const selectedFiltersCopy = { ...selectedFilters };
+		if (selectedFiltersCopy[filterType]) {
+			if (selectedFiltersCopy[filterType].includes(id)) {
+				selectedFiltersCopy[filterType] = selectedFiltersCopy[filterType].filter(
+					(ele: string) => ele !== id,
+				);
+			} else {
+				selectedFiltersCopy[filterType].push(id);
+			}
+		} else {
+			selectedFiltersCopy[filterType] = [id];
+		}
+		setSelectedFilters(selectedFiltersCopy);
 	};
 
 	if (isLoading) return <HalfCircleSpinner />;
@@ -137,9 +109,36 @@ const App: React.FC = () => {
 		<div className="container">
 			<div className="dashboardContainer">
 				<div className="tableContainer card">
-					<div className="containerHeading">Activity Log</div>
-					<div className="containerSubHeading">
-						Get a bird's eye view of your team's daily work activity
+					<div>
+						<div>
+							<div className="containerHeading">Activity Log</div>
+							<div className="containerSubHeading">
+								Get a bird's eye view of your team's daily work activity
+							</div>
+						</div>
+						<div className="filtersContainer">
+							<div>
+								<label>Name</label>
+								<MultiSelectDropdown
+									options={rows.map((ele) => ({ id: ele.name, title: ele.name }))}
+									selected={selectedFilters["name"] || []}
+									toggleOption={toggleOption}
+									type="name"
+								/>
+							</div>
+							<div>
+								<label>Activity</label>
+								<MultiSelectDropdown
+									options={Object.keys(activityMeta).map((ele) => ({
+										id: ele,
+										title: ele,
+									}))}
+									selected={selectedFilters["activity"] || []}
+									toggleOption={toggleOption}
+									type="activity"
+								/>
+							</div>
+						</div>
 					</div>
 					<Table>
 						<THead>
@@ -154,68 +153,40 @@ const App: React.FC = () => {
 							</THeadTR>
 						</THead>
 						<TBody>
-							{rows.map((row, index) => (
-								<TBodyTR key={index}>
-									<TD>
-										<UserInfo name={row.name} />
-									</TD>
-									<TD>{generateSummaryData(row.totalActivity)}</TD>
-									{row.dayWiseActivity.map((dayWiseActivity, index) => (
-										<TD key={index}>
-											{generateBadgeDots(dayWiseActivity.items.children)}
+							{rows
+								.filter((ele) => {
+									return (
+										(selectedFilters["name"] || []).length === 0 ||
+										selectedFilters["name"].includes(ele.name)
+									);
+								})
+								.map((row, index) => (
+									<TBodyTR key={index}>
+										<TD>
+											<UserInfo name={row.name} />
 										</TD>
-									))}
-								</TBodyTR>
-							))}
+										<TD>
+											{generateSummaryData(
+												row.totalActivity,
+												selectedFilters["activity"] || [],
+											)}
+										</TD>
+										{row.dayWiseActivity.map((dayWiseActivity, index) => (
+											<TD key={index}>
+												{generateBadgeDots(
+													dayWiseActivity.items.children,
+													selectedFilters["activity"] || [],
+												)}
+											</TD>
+										))}
+									</TBodyTR>
+								))}
 						</TBody>
 					</Table>
 				</div>
 				<div className="chartsContainer">
-					<div className="card">
-						<div className="containerHeading">PR Logs</div>
-						<div className="containerSubHeading">Get overview of daily PR Activity</div>
-						<ResponsiveContainer height="100%" width="100%">
-							<BarChart data={summaryData}>
-								<XAxis dataKey="name" tick={false} />
-								<Tooltip content={<CustomTooltip />} />
-								<Bar dataKey="PR Open" fill={activityMeta["PR Open"]} stackId="a" />
-								<Bar
-									dataKey="PR Merged"
-									fill={activityMeta["PR Merged"]}
-									stackId="a"
-								/>
-								<Bar
-									dataKey="PR Reviewed"
-									fill={activityMeta["PR Reviewed"]}
-									stackId="a"
-								/>
-							</BarChart>
-						</ResponsiveContainer>
-					</div>
-					<div className="card">
-						<div className="containerHeading">Commit Logs</div>
-						<div className="containerSubHeading">
-							Get overview of daily commit activity
-						</div>
-						<ResponsiveContainer height="100%" width="100%">
-							<LineChart data={aggregateCommitsOverTime(rows)}>
-								<XAxis
-									ticks={14}
-									dataKey="label"
-									tickFormatter={(value) => {
-										const dateObj = new Date(value);
-										return (
-											dateObj.getDate() +
-											" " +
-											dateObj.toLocaleString("default", { month: "short" })
-										);
-									}}
-								/>
-								<Tooltip />
-								<Line dataKey="value" stroke={activityMeta["Commits"]} />
-							</LineChart>
-						</ResponsiveContainer>
-					</div>
+					<PRLogsChart summaryData={summaryData} activityMeta={activityMeta} />
+					<CommitLogsChart rows={rows} activityMeta={activityMeta} />
 				</div>
 			</div>
 		</div>
