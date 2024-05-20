@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios, { AxiosResponse } from "axios";
-import { Data, DayWiseActivity, DayWiseActivityItem, Row, Summary } from "./types/AuthorWorkLog";
+import { Data, DayWiseActivityItem, Row, Summary } from "./types/AuthorWorkLog";
 import Badge from "./components/Badge";
 import HalfCircleSpinner from "./components/Loader";
 import TaskDots from "./components/TaskDots";
@@ -53,7 +53,7 @@ const App: React.FC = () => {
 				});
 				setActivityMeta(activityMeta);
 				setRows(data.AuthorWorklog.rows);
-				//@ts-ignore
+				//@ts-expect-error - TS doesn't know that setSummary has valid types
 				setSummaryData(summaryData);
 			})
 			.catch((error) => console.log(error))

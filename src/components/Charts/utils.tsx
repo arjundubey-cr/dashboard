@@ -7,7 +7,8 @@ import GitMerge from "../../assets/git-merge.svg";
 import CommentDiscussion from "../../assets/comment-discussion.svg";
 import CodeReview from "../../assets/code-review.svg";
 import Commit from "../../assets/commit.svg";
-interface CustomTooltipProps extends TooltipProps<any, any> {
+import { NameType, ValueType } from "recharts/types/component/DefaultTooltipContent";
+interface CustomTooltipProps extends TooltipProps<ValueType, NameType> {
     metaType?: string;
     activityMeta: { [key: string]: string };
 }
@@ -40,9 +41,9 @@ export const CustomTooltip = ({ active, payload, label, ...props }: CustomToolti
                         }}>
                         <div style={{ display: "flex", alignItems: "center" }}>
                             <StyledLogo
-                                // @ts-ignore
+                                // @ts-expect-error - TS doesn't know that ASSETS[item] is a valid key
                                 src={ASSETS[item.name]}
-                                color={activityMeta[item.name]}
+                                color={activityMeta[item.name??""]}
                             />
                             <span>{item.name}</span>
                         </div>
